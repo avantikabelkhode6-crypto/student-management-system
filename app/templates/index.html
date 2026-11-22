@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Management System</title>
+</head>
+<body>
+
+    <h1>Student Management System</h1>
+
+    <h2>Add New Student</h2>
+
+    <form action="/add" method="POST">
+        <input type="text" name="name" placeholder="Student Name" required>
+        <input type="text" name="student_id" placeholder="Student ID" required>
+        <input type="text" name="course" placeholder="Course" required>
+        <button type="submit">Add Student</button>
+    </form>
+
+    <h2>Student Records</h2>
+
+    {% for student in students %}
+
+        <hr>
+
+        <p>
+            Name: {{ student.name }} <br>
+            Student ID: {{ student.student_id }} <br>
+            Course: {{ student.course }}
+        </p>
+
+        <h3>Edit Student</h3>
+
+        <form action="/update/{{ student.id }}" method="POST">
+            <input type="text" name="name" value="{{ student.name }}" required>
+            <input type="text" name="student_id" value="{{ student.student_id }}" required>
+            <input type="text" name="course" value="{{ student.course }}" required>
+            <button type="submit">Update</button>
+        </form>
+
+        <form action="/delete/{{ student.id }}" method="POST">
+            <button type="submit">Delete</button>
+        </form>
+
+    {% endfor %}
+
+</body>
+</html>
+
