@@ -1,47 +1,245 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Student Management System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduManage | Student Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-    <h1>Student Management System</h1>
+<div class="background-glow glow-one"></div>
+<div class="background-glow glow-two"></div>
 
-    <h2>Add New Student</h2>
+<div class="dashboard">
 
-    <form action="/add" method="POST">
-        <input type="text" name="name" placeholder="Student Name" required>
-        <input type="text" name="student_id" placeholder="Student ID" required>
-        <input type="text" name="course" placeholder="Course" required>
-        <button type="submit">Add Student</button>
-    </form>
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">E</div>
+            <div>
+                <h2>Edu<span>Manage</span></h2>
+                <small>ADMIN PORTAL</small>
+            </div>
+        </div>
 
-    <h2>Student Records</h2>
+        <p class="menu-label">MAIN MENU</p>
+        <a href="/" class="menu-item active">▦ Dashboard</a>
+        <a href="#students" class="menu-item">♙ Students</a>
+        <a href="#add-student" class="menu-item">＋ Add Student</a>
 
-    {% for student in students %}
+        <div class="sidebar-bottom">
+            <div class="profile">
+                <div class="avatar">A</div>
+                <div>
+                    <strong>Administrator</strong>
+                    <small>System Manager</small>
+                </div>
+            </div>
+        </div>
+    </aside>
 
-        <hr>
+    <main class="main-content">
 
-        <p>
-            Name: {{ student.name }} <br>
-            Student ID: {{ student.student_id }} <br>
-            Course: {{ student.course }}
-        </p>
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">STUDENT MANAGEMENT SYSTEM</p>
+                <h1>Dashboard Overview</h1>
+                <p class="subtitle">Manage your students and academic records.</p>
+            </div>
+            <div class="topbar-right">
+                <span class="status-dot"></span> System Active
+            </div>
+        </header>
 
-        <h3>Edit Student</h3>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
 
-        <form action="/update/{{ student.id }}" method="POST">
-            <input type="text" name="name" value="{{ student.name }}" required>
-            <input type="text" name="student_id" value="{{ student.student_id }}" required>
-            <input type="text" name="course" value="{{ student.course }}" required>
-            <button type="submit">Update</button>
-        </form>
+        <section class="welcome-card">
+            <div class="welcome-content">
+                <span class="welcome-tag">WELCOME TO EDUMANAGE</span>
+                <h2>Your Student Management Dashboard</h2>
+                <p>Manage student registrations, academic courses and student records from one central platform.</p>
+                <a href="#add-student" class="primary-button">＋ Register New Student</a>
+            </div>
 
-        <form action="/delete/{{ student.id }}" method="POST">
-            <button type="submit">Delete</button>
-        </form>
+            <div class="welcome-visual">
+                <div class="orbit"></div>
+                <div class="orbit orbit-two"></div>
+                <div class="floating-dot dot-one"></div>
+                <div class="floating-dot dot-two"></div>
+                <div class="floating-cube">
+                    <span>EDU</span>
+                    <strong>3D</strong>
+                    <small>MANAGEMENT</small>
+                </div>
+            </div>
+        </section>
 
-    {% endfor %}
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon purple">♙</div>
+                <p>Total Students</p>
+                <h2>{{ total_students }}</h2>
+                <small>Registered records</small>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon blue">▤</div>
+                <p>Active Courses</p>
+                <h2>{{ total_courses }}</h2>
+                <small>Distinct courses</small>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon green">✓</div>
+                <p>System Status</p>
+                <h2>Active</h2>
+                <small>Application operational</small>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon orange">⌕</div>
+                <p>Search Results</p>
+                <h2>{{ students|length }}</h2>
+                <small>Currently displayed</small>
+            </div>
+        </section>
+
+        <section class="content-card" id="add-student">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">REGISTRATION</p>
+                    <h2>Add New Student</h2>
+                </div>
+                <span class="section-number">01</span>
+            </div>
+
+            <form action="{{ url_for('add_student') }}" method="POST" class="student-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" placeholder="Enter student name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Student ID</label>
+                    <input type="text" name="student_id" placeholder="Enter student ID" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Course</label>
+                    <input type="text" name="course" placeholder="Enter course name" required>
+                </div>
+
+                <button type="submit" class="primary-button">Register Student →</button>
+            </form>
+        </section>
+
+        <section class="content-card" id="students">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">DATABASE MANAGEMENT</p>
+                    <h2>Student Directory</h2>
+                </div>
+                <span class="record-count">{{ total_students }} Total Records</span>
+            </div>
+
+            <form action="{{ url_for('home') }}" method="GET" class="search-box">
+                <span>⌕</span>
+                <input type="search" name="search"
+                       value="{{ search }}"
+                       placeholder="Search by name, student ID or course...">
+            </form>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STUDENT</th>
+                            <th>STUDENT ID</th>
+                            <th>COURSE</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>
+                                <div class="student-name">
+                                    <span class="table-avatar">{{ student.name[0]|upper }}</span>
+                                    <strong>{{ student.name }}</strong>
+                                </div>
+                            </td>
+
+                            <td class="student-id">{{ student.student_id }}</td>
+                            <td><span class="course-badge">{{ student.course }}</span></td>
+
+                            <td>
+                                <div class="action-buttons">
+                                    <button type="button" class="edit-button"
+                                            onclick="editStudent({{ student.id }})">Edit</button>
+
+                                    <form action="{{ url_for('delete_student', id=student.id) }}"
+                                          method="POST"
+                                          onsubmit="return confirm('Are you sure you want to delete this student?')">
+                                        <button type="submit" class="delete-button">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr id="edit-{{ student.id }}" hidden>
+                            <td colspan="4">
+                                <form action="{{ url_for('update_student', id=student.id) }}"
+                                      method="POST" class="edit-form">
+                                    <input name="name" value="{{ student.name }}" required>
+                                    <input name="student_id" value="{{ student.student_id }}" required>
+                                    <input name="course" value="{{ student.course }}" required>
+                                    <button type="submit" class="primary-button">Save</button>
+                                    <button type="button" class="delete-button"
+                                            onclick="closeEdit({{ student.id }})">Cancel</button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <div class="empty-icon">♙</div>
+                                <strong>No students found</strong>
+                                <p>Add a student or change your search.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            <span>EduManage</span>
+            <p>Student Management System | Flask + SQLite + Docker</p>
+        </footer>
+
+    </main>
+</div>
+
+<script>
+function editStudent(id) {
+    document.querySelectorAll('[id^="edit-"]').forEach(row => {
+        row.hidden = true;
+    });
+    document.getElementById("edit-" + id).hidden = false;
+}
+
+function closeEdit(id) {
+    document.getElementById("edit-" + id).hidden = true;
+}
+</script>
 
 </body>
 </html>
