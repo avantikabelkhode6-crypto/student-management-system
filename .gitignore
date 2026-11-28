@@ -5,3 +5,4 @@ students.db
 .env
 backups/
 
+*.pem

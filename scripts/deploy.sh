@@ -1,9 +1,10 @@
+cat > scripts/deploy.sh <<'EOF'
 #!/bin/bash
 set -Eeuo pipefail
 
 APP_DIR="/home/ubuntu/student-management-system"
 DB_FILE="/home/ubuntu/student-data/students.db"
-IMAGE="student-management-system:1.0"
+IMAGE="student-management-system:v2"
 CONTAINER="student-container"
 
 echo "Starting Student Management System deployment..."
@@ -11,17 +12,17 @@ echo "Starting Student Management System deployment..."
 cd "$APP_DIR"
 
 if [[ ! -f "$DB_FILE" ]]; then
-    echo "ERROR: Student database not found at $DB_FILE"
+    echo "ERROR: Student database not found."
     exit 1
 fi
 
-echo "Pulling latest code from GitHub..."
+echo "Pulling latest code..."
 git pull --ff-only origin main
 
 echo "Building Docker image..."
 sudo docker build -t "$IMAGE" .
 
-echo "Stopping old container if it exists..."
+echo "Stopping existing container..."
 if sudo docker container inspect "$CONTAINER" >/dev/null 2>&1; then
     sudo docker stop "$CONTAINER"
     sudo docker rm "$CONTAINER"
@@ -35,6 +36,11 @@ sudo docker run -d \
     --restart unless-stopped \
     "$IMAGE"
 
-echo "Deployment successful!"
-echo "Application: http://EC2-PUBLIC-IP:5000"
-exit 0
+echo "Checking container..."
+sudo docker ps --filter "name=$CONTAINER"
+
+echo "Deployment completed!"
+EOF
+
+chmod +x scripts/deploy.sh
+

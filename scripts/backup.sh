@@ -1,3 +1,4 @@
+cat > scripts/backup.sh <<'EOF'
 #!/bin/bash
 set -Eeuo pipefail
 
@@ -8,14 +9,12 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 SNAPSHOT="$BACKUP_DIR/students_$TIMESTAMP.db"
 ARCHIVE="$BACKUP_DIR/students_$TIMESTAMP.tar.gz"
 
-trap 'echo "ERROR: Backup failed. Check the error above."; exit 1' ERR
-
 echo "Starting database backup..."
 
 mkdir -p "$BACKUP_DIR"
 
 if [[ ! -f "$DB_FILE" ]]; then
-    echo "ERROR: Database file not found: $DB_FILE"
+    echo "ERROR: Database not found: $DB_FILE"
     exit 1
 fi
 
@@ -24,26 +23,28 @@ if ! command -v aws >/dev/null 2>&1; then
     exit 1
 fi
 
-echo "Creating a consistent SQLite database snapshot..."
+trap 'echo "ERROR: Backup failed."; rm -f "$SNAPSHOT"; exit 1' ERR
+
+echo "Creating SQLite snapshot..."
 python3 - "$DB_FILE" "$SNAPSHOT" <<'PY'
 import sqlite3
 import sys
 
-source = sqlite3.connect(sys.argv[1])
-destination = sqlite3.connect(sys.argv[2])
-source.backup(destination)
-destination.close()
-source.close()
+with sqlite3.connect(sys.argv[1]) as source:
+    with sqlite3.connect(sys.argv[2]) as destination:
+        source.backup(destination)
 PY
 
-echo "Creating timestamped archive..."
+echo "Compressing backup..."
 tar -czf "$ARCHIVE" -C "$BACKUP_DIR" "$(basename "$SNAPSHOT")"
 rm -f "$SNAPSHOT"
 
-echo "Uploading archive to S3..."
+echo "Uploading to S3..."
 aws s3 cp "$ARCHIVE" "s3://$BUCKET/"
 
 echo "Backup completed successfully!"
-echo "Backup file: $ARCHIVE"
 echo "S3 location: s3://$BUCKET/$(basename "$ARCHIVE")"
-exit 0
+EOF
+
+chmod +x scripts/backup.sh
+
